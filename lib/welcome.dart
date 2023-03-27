@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_todo_app/Login.dart';
+import 'package:flutter_todo_app/components/header.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class WelcomePage extends StatelessWidget {
@@ -13,26 +14,7 @@ class WelcomePage extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 32),
         child: Column(
           children: [
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "TASK",
-                  style: Theme.of(context).textTheme.headlineLarge,
-                ),
-                Text(
-                  "-KOO",
-                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onPrimary,
-                      ),
-                )
-              ],
-            ),
-            Text(
-              "Management App",
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
+            const AuthHeader(),
             const SizedBox(height: 30),
             Image.asset(
               "assets/welcome.png",

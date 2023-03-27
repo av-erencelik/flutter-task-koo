@@ -12,12 +12,12 @@ class AppTheme {
         secondary: _CustomColors().butterflyBlue,
         surface: _CustomColors().milk,
         background: _CustomColors().milk,
-        error: _CustomColors().butterflyBlue,
+        error: Colors.red,
         onPrimary: _CustomColors().eliteBlue,
-        onSecondary: _CustomColors().eliteBlue,
+        onSecondary: _CustomColors().blackTie,
         onSurface: _CustomColors().stoneCold,
         onBackground: _CustomColors().stoneCold,
-        onError: _CustomColors().eliteBlue,
+        onError: Colors.red,
         brightness: Brightness.light,
       ),
       scaffoldBackgroundColor: _CustomColors().milk,
@@ -28,6 +28,25 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
+        ),
+      ),
+      iconTheme: IconThemeData(
+        color: _CustomColors().butterflyBlue,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        prefixIconColor: Colors.white,
+        iconColor: Colors.white,
+        contentPadding: const EdgeInsets.all(0),
+        hintStyle: TextStyle(color: _CustomColors().textGray, fontSize: 14),
+        enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+                color: _CustomColors().butterflyBlue.withOpacity(0.1)),
+            borderRadius: const BorderRadius.all(Radius.circular(12))),
+        border: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: _CustomColors().butterflyBlue.withOpacity(0.1),
+          ),
+          borderRadius: BorderRadius.circular(12),
         ),
       ),
       textTheme: TextTheme(
@@ -64,4 +83,5 @@ class _CustomColors {
   final Color stoneCold = const Color.fromRGBO(85, 85, 85, 1);
   final Color winterOasis = const Color.fromRGBO(241, 250, 238, 1);
   final Color milk = const Color.fromRGBO(250, 255, 243, 1);
+  final Color blackTie = const Color.fromRGBO(71, 71, 71, 1);
 }
