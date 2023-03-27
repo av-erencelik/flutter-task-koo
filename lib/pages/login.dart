@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_todo_app/components/header.dart';
+import 'package:flutter_todo_app/pages/register.dart';
 import 'package:form_validator/form_validator.dart';
 
 class LoginPage extends StatefulWidget {
@@ -93,7 +94,12 @@ class _LoginPageState extends State<LoginPage> with Validators {
                             ),
                       ),
                       InkWell(
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const RegisterPage()));
+                        },
                         child: Text("Sign Up",
                             style: Theme.of(context)
                                 .textTheme
@@ -191,17 +197,22 @@ class CustomTextField extends StatelessWidget {
     this.isPassword = false,
     required this.hint,
     required this.icon,
+    this.controller,
   });
   final String? Function(String?) validator;
   final bool isPassword;
   final String hint;
   final IconData icon;
+  final TextEditingController? controller;
+
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       validator: (value) {
         return validator(value);
       },
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      controller: controller,
       enableSuggestions: true,
       keyboardType:
           isPassword ? TextInputType.text : TextInputType.emailAddress,
@@ -234,4 +245,6 @@ class Validators {
   final emailValidator = ValidationBuilder().email().maxLength(50).build();
   final passwordValidator =
       ValidationBuilder().minLength(6).maxLength(50).build();
+  final usernameValidator =
+      ValidationBuilder().minLength(3).maxLength(20).build();
 }

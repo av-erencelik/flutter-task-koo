@@ -6,6 +6,9 @@ class AppTheme {
       appBarTheme: AppBarTheme(
         color: _CustomColors().milk,
         elevation: 0,
+        iconTheme: IconThemeData(
+          color: _CustomColors().butterflyBlue,
+        ),
       ),
       colorScheme: ColorScheme(
         primary: _CustomColors().butterflyBlue,
