@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_todo_app/components/header.dart';
+import 'package:flutter_todo_app/main.dart';
 import 'package:flutter_todo_app/pages/login.dart';
 import 'package:form_validator/form_validator.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -13,6 +15,27 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> with Validators {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController pass = TextEditingController();
+  String email = "";
+  String username = "";
+  String password = "";
+
+  void emailChange(String? value) {
+    setState(() {
+      email = value ?? "";
+    });
+  }
+
+  void passChange(String? value) {
+    setState(() {
+      password = value ?? "";
+    });
+  }
+
+  void userChange(String? value) {
+    setState(() {
+      username = value ?? "";
+    });
+  }
 
   @override
   void initState() {
@@ -55,6 +78,7 @@ class _RegisterPageState extends State<RegisterPage> with Validators {
                     validator: usernameValidator,
                     hint: "Username",
                     icon: Icons.person,
+                    savedValue: userChange,
                   ),
                   const SizedBox(
                     height: 20,
@@ -63,6 +87,7 @@ class _RegisterPageState extends State<RegisterPage> with Validators {
                     validator: emailValidator,
                     hint: "Email",
                     icon: Icons.email,
+                    savedValue: emailChange,
                   ),
                   const SizedBox(
                     height: 20,
@@ -73,6 +98,7 @@ class _RegisterPageState extends State<RegisterPage> with Validators {
                     hint: "Password",
                     controller: pass,
                     icon: Icons.lock,
+                    savedValue: passChange,
                   ),
                   const SizedBox(
                     height: 20,
@@ -134,10 +160,19 @@ class _RegisterPageState extends State<RegisterPage> with Validators {
         height: 50,
         margin: const EdgeInsets.only(top: 10, bottom: 40),
         child: ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               if (_formKey.currentState!.validate()) {
                 ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("Processing Data")));
+                _formKey.currentState!.save();
+                final AuthResponse res = await supabase.auth
+                    .signUp(email: email, password: password, data: {
+                  "username": username,
+                });
+                final Session? session = res.session;
+                final User? user = res.user;
+                print(user);
+                print(session);
               }
             },
             child: Text("Register",

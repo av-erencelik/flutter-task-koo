@@ -2,12 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_todo_app/pages/login.dart';
 import 'package:flutter_todo_app/components/header.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
+  void store() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isFirstTime', true);
+  }
 
   @override
   Widget build(BuildContext context) {
+    store();
     return Scaffold(
       appBar: AppBar(),
       body: Padding(

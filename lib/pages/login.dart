@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_todo_app/components/header.dart';
+import 'package:flutter_todo_app/main.dart';
 import 'package:flutter_todo_app/pages/register.dart';
 import 'package:form_validator/form_validator.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -12,6 +14,20 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> with Validators {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  String password = "";
+  String email = "";
+  void emailChange(String? value) {
+    setState(() {
+      email = value ?? "";
+    });
+  }
+
+  void passChange(String? value) {
+    setState(() {
+      password = value ?? "";
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,7 +42,6 @@ class _LoginPageState extends State<LoginPage> with Validators {
               formHeader(context),
               Form(
                 key: _formKey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: Column(children: [
                   const SizedBox(
                     height: 30,
@@ -35,6 +50,7 @@ class _LoginPageState extends State<LoginPage> with Validators {
                     validator: emailValidator,
                     hint: "Email",
                     icon: Icons.email,
+                    savedValue: emailChange,
                   ),
                   const SizedBox(
                     height: 20,
@@ -44,6 +60,7 @@ class _LoginPageState extends State<LoginPage> with Validators {
                     isPassword: true,
                     hint: "Password",
                     icon: Icons.lock,
+                    savedValue: passChange,
                   ),
                   forgotPassword(context),
                   loginButton(context, _formKey),
@@ -126,10 +143,17 @@ class _LoginPageState extends State<LoginPage> with Validators {
         height: 50,
         margin: const EdgeInsets.only(top: 10, bottom: 40),
         child: ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               if (_formKey.currentState!.validate()) {
                 ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("Processing Data")));
+                _formKey.currentState!.save();
+                final AuthResponse res = await supabase.auth
+                    .signInWithPassword(email: email, password: password);
+                final Session? session = res.session;
+                final User? user = res.user;
+                print(user);
+                print(session);
               }
             },
             child: Text("Login",
@@ -198,12 +222,14 @@ class CustomTextField extends StatelessWidget {
     required this.hint,
     required this.icon,
     this.controller,
+    this.savedValue,
   });
   final String? Function(String?) validator;
   final bool isPassword;
   final String hint;
   final IconData icon;
   final TextEditingController? controller;
+  final void Function(String?)? savedValue;
 
   @override
   Widget build(BuildContext context) {
@@ -213,6 +239,7 @@ class CustomTextField extends StatelessWidget {
       },
       autovalidateMode: AutovalidateMode.onUserInteraction,
       controller: controller,
+      onSaved: savedValue,
       enableSuggestions: true,
       keyboardType:
           isPassword ? TextInputType.text : TextInputType.emailAddress,
