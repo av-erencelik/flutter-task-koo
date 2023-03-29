@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_todo_app/components/header.dart';
 import 'package:flutter_todo_app/main.dart';
 import 'package:flutter_todo_app/pages/login.dart';
+import 'package:flutter_todo_app/services/supabase.dart';
 import 'package:form_validator/form_validator.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -13,6 +14,7 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> with Validators {
+  final _supabaseController = SupabaseManager();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController pass = TextEditingController();
   String email = "";
@@ -53,11 +55,7 @@ class _RegisterPageState extends State<RegisterPage> with Validators {
 
   @override
   Widget build(BuildContext context) {
-    final passwordCheck = ValidationBuilder()
-        .minLength(6)
-        .passwordCheck(pass.text)
-        .maxLength(50)
-        .build();
+    final passwordCheck = ValidationBuilder().minLength(6).passwordCheck(pass.text).maxLength(50).build();
     return Scaffold(
       appBar: AppBar(),
       body: SingleChildScrollView(
@@ -162,33 +160,42 @@ class _RegisterPageState extends State<RegisterPage> with Validators {
         child: ElevatedButton(
             onPressed: () async {
               if (_formKey.currentState!.validate()) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Processing Data")));
                 _formKey.currentState!.save();
-                final AuthResponse res = await supabase.auth
-                    .signUp(email: email, password: password, data: {
-                  "username": username,
-                });
-                final Session? session = res.session;
-                final User? user = res.user;
-                print(user);
-                print(session);
+                try {
+                  final AuthResponse res = await supabase.auth.signUp(email: email, password: password, data: {
+                    "username": username,
+                  });
+                } on AuthException catch (e) {
+                  if (e.message.contains("User already registered")) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text(
+                      "Email already exists",
+                      textAlign: TextAlign.center,
+                    )));
+                  } else if (e.message.contains("duplicate")) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text(
+                      "Username already exists",
+                      textAlign: TextAlign.center,
+                    )));
+                  }
+                }
               }
             },
             child: Text("Register",
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
-                    fontSize: 17))));
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(fontWeight: FontWeight.w500, color: Colors.white, fontSize: 17))));
   }
 
   Text formHeader(BuildContext context) {
     return Text(
       "Create your account",
-      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-          fontSize: 15.5,
-          fontWeight: FontWeight.w500,
-          color: Theme.of(context).colorScheme.onSecondary),
+      style: Theme.of(context)
+          .textTheme
+          .bodyMedium
+          ?.copyWith(fontSize: 15.5, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSecondary),
     );
   }
 }
