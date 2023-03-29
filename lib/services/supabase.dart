@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_todo_app/services/todo.dart';
+import 'package:intl/intl.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -63,7 +65,12 @@ class SupabaseManager {
   }
 
   getTodos() {
-    return client.from('todos').stream(primaryKey: ['id']).order("day", ascending: true).order("time", ascending: true);
+    return client
+        .from('todos')
+        .stream(primaryKey: ['id'])
+        .gte('day', DateTime.now().toIso8601String())
+        .order("day", ascending: true)
+        .order("time", ascending: true);
   }
 
   updateFinishedStatus(id, finished) async {
@@ -72,5 +79,25 @@ class SupabaseManager {
 
   updateNotificationsStatus(id, notifications) async {
     await client.from('todos').update({'notifications': notifications}).eq('id', id);
+  }
+
+  deleteTodoById(id) async {
+    await client.from('todos').delete().eq('id', id);
+  }
+
+  fetchTodaysLatestNotificationsTrueTodo() async {
+    final res = await client
+        .from('todos')
+        .select()
+        .eq('day', DateTime.now().toIso8601String())
+        .eq('notifications', true)
+        .order("time", ascending: true)
+        .limit(1);
+    return res.map((e) => Todo.fromJson(e)).toList();
+  }
+
+  fetchNumberOfTodaysTasks() async {
+    final res = await client.from('todos').select().eq('day', DateTime.now().toIso8601String());
+    return res.length;
   }
 }

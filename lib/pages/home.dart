@@ -14,11 +14,11 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   var _todoStream;
   final _supabaseController = SupabaseManager();
+
   @override
   void initState() {
     super.initState();
 
-    // Retrieve the user's todos from Supabase and sort them by their due date
     _todoStream = _supabaseController.getTodos();
   }
 
@@ -55,7 +55,7 @@ class _HomeState extends State<Home> {
       ),
       body: Wrap(
         children: [
-          const TodayReminder(),
+          TodayReminder(supabaseController: _supabaseController),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 17),
             child: SizedBox(
@@ -68,24 +68,7 @@ class _HomeState extends State<Home> {
                     }
                     final todos = snapshot.data!.map((e) => Todo.fromJson(e)).toList();
                     final todosByDueDate = groupTodosByDueDate(todos);
-                    return ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: todosByDueDate.length,
-                        itemBuilder: (context, index) {
-                          final dueDate = todosByDueDate.keys.elementAt(index);
-                          final todosForDueDate = todosByDueDate[dueDate]!;
-                          return Column(
-                            children: [
-                              UniqueDayTitle(title: dueDate),
-                              ...todosForDueDate
-                                  .map((todo) => TodoTask(
-                                        todo: todo,
-                                        supabaseController: _supabaseController,
-                                      ))
-                                  .toList(),
-                            ],
-                          );
-                        });
+                    return TodoList(todosByDueDate: todosByDueDate, supabaseController: _supabaseController);
                   }),
             ),
           ),
@@ -103,6 +86,84 @@ class _HomeState extends State<Home> {
       map[dueDate]!.add(todo);
       return map;
     });
+  }
+}
+
+class TodoList extends StatelessWidget {
+  const TodoList({
+    super.key,
+    required this.todosByDueDate,
+    required SupabaseManager supabaseController,
+  }) : _supabaseController = supabaseController;
+
+  final Map<String, List<Todo>> todosByDueDate;
+  final SupabaseManager _supabaseController;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+        shrinkWrap: true,
+        itemCount: todosByDueDate.length,
+        itemBuilder: (context, index) {
+          final dueDate = todosByDueDate.keys.elementAt(index);
+          final todosForDueDate = todosByDueDate[dueDate]!;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              UniqueDayTitle(title: dueDate),
+              ...todosForDueDate.map((todo) => dismissibleTaskCard(context, todo)).toList(),
+            ],
+          );
+        });
+  }
+
+  Dismissible dismissibleTaskCard(BuildContext context, Todo todo) {
+    return Dismissible(
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (direction) {
+        return showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+                  title: Text("Delete ${todo.title}"),
+                  content: const Text("Are you sure you want to delete this todo?"),
+                  actions: [
+                    TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(false);
+                        },
+                        child: const Text("No", style: TextStyle(color: Colors.red))),
+                    TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(true);
+                        },
+                        child: const Text("Yes", style: TextStyle(color: Colors.green))),
+                  ],
+                ));
+      },
+      onDismissed: (direction) {
+        _supabaseController.deleteTodoById(todo.id);
+      },
+      background: Align(
+          alignment: Alignment.centerRight,
+          child: Container(
+            alignment: Alignment.center,
+            width: 35,
+            height: 35,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(50),
+              color: Colors.red[100],
+            ),
+            child: const Icon(
+              Icons.delete,
+              color: Colors.red,
+            ),
+          )),
+      key: UniqueKey(),
+      child: TodoTask(
+        todo: todo,
+        supabaseController: _supabaseController,
+      ),
+    );
   }
 }
 
@@ -228,7 +289,7 @@ class UniqueDayTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10, top: 5),
+      margin: const EdgeInsets.only(bottom: 10, top: 5, left: 5),
       child: Text(
         checkIfTodayOrTomorrow(title),
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -252,10 +313,33 @@ class UniqueDayTitle extends StatelessWidget {
   }
 }
 
-class TodayReminder extends StatelessWidget {
+class TodayReminder extends StatefulWidget {
   const TodayReminder({
     super.key,
+    required this.supabaseController,
   });
+
+  final SupabaseManager supabaseController;
+
+  @override
+  State<TodayReminder> createState() => _TodayReminderState();
+}
+
+class _TodayReminderState extends State<TodayReminder> {
+  bool show = false;
+  Todo? current;
+  @override
+  void initState() {
+    super.initState();
+    widget.supabaseController.fetchTodaysLatestNotificationsTrueTodo().then((value) {
+      if (value != false) {
+        setState(() {
+          current = value[0];
+          show = true;
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -263,71 +347,97 @@ class TodayReminder extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       height: 160,
       color: Theme.of(context).colorScheme.primary,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: Theme.of(context).colorScheme.surface,
-        ),
-        padding: const EdgeInsets.all(17),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const SizedBox(height: 5),
-                Text(
-                  "Today Reminder",
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineSmall
-                      ?.copyWith(color: Colors.white, fontSize: 21, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  "Meeting with client",
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white),
-                ),
-                Text(
-                  "10:00 AM",
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white),
-                ),
-                const SizedBox(height: 5),
-              ],
-            ),
-            Row(
-              children: [
-                const Image(
-                  image: AssetImage("assets/ring.png"),
-                ),
-                Align(
-                  alignment: Alignment.topRight,
-                  child: Container(
-                      transform: Matrix4.translationValues(5, -10, 0),
-                      child: InkWell(
-                        child: const Icon(
-                          Icons.close,
-                          color: Colors.white,
-                        ),
-                        onTap: () {},
-                      )),
-                )
-              ],
-            ),
-          ],
-        ),
-      ),
+      child: show
+          ? Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: Theme.of(context).colorScheme.surface,
+              ),
+              padding: const EdgeInsets.all(17),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const SizedBox(height: 5),
+                      Text(
+                        "Today Reminder",
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall
+                            ?.copyWith(color: Colors.white, fontSize: 21, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        current?.title ?? "",
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white),
+                      ),
+                      Text(
+                        DateFormat.jm().format(DateFormat("hh:mm:ss").parse(current?.time ?? "")),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white),
+                      ),
+                      const SizedBox(height: 5),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      const Image(
+                        image: AssetImage("assets/ring.png"),
+                      ),
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: Container(
+                            transform: Matrix4.translationValues(5, -10, 0),
+                            child: InkWell(
+                              child: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                              ),
+                              onTap: () {
+                                setState(() {
+                                  show = false;
+                                });
+                              },
+                            )),
+                      )
+                    ],
+                  ),
+                ],
+              ),
+            )
+          : Align(
+              child: Text("No reminders today. Add some! 🎉",
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white))),
     );
   }
 }
 
-class CustomAppbar extends StatelessWidget {
+class CustomAppbar extends StatefulWidget {
   const CustomAppbar({
     super.key,
     required SupabaseManager supabaseController,
   }) : _supabaseController = supabaseController;
 
   final SupabaseManager _supabaseController;
+
+  @override
+  State<CustomAppbar> createState() => _CustomAppbarState();
+}
+
+class _CustomAppbarState extends State<CustomAppbar> {
+  late int todaysTasks = 0;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    widget._supabaseController.fetchNumberOfTodaysTasks().then((value) {
+      setState(() {
+        todaysTasks = value;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -338,10 +448,11 @@ class CustomAppbar extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              _supabaseController.getCurrentUser()?.userMetadata!.values.first ?? "No user",
+              widget._supabaseController.getCurrentUser()?.userMetadata!.values.first ?? "No user",
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, color: Colors.white),
             ),
-            Text("Today you have 9 tasks", style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white)),
+            Text("Today you have $todaysTasks tasks",
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white)),
           ],
         ),
         const CircleAvatar(
