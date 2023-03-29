@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 const String supabaseUrl = "https://pxppdldhgixwjyntwxsx.supabase.co";
@@ -6,7 +7,7 @@ const String token =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4cHBkbGRoZ2l4d2p5bnR3eHN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2Nzk5MTYyODksImV4cCI6MTk5NTQ5MjI4OX0.gUk6ADmU3KoXNFESrg4wz3II4lOLo4DWWoC-q9Joo5g";
 
 class SupabaseManager {
-  final client = SupabaseClient(supabaseUrl, token);
+  late final client = Supabase.instance.client;
 
   Future<void> signUpUser(context, {String? email, String? password, String? username}) async {
     try {
@@ -57,7 +58,19 @@ class SupabaseManager {
     Navigator.pushReplacementNamed(context, "/login");
   }
 
-  getCurrentUser() {
+  User? getCurrentUser() {
     return client.auth.currentUser;
+  }
+
+  getTodos() {
+    return client.from('todos').stream(primaryKey: ['id']).order("day", ascending: true).order("time", ascending: true);
+  }
+
+  updateFinishedStatus(id, finished) async {
+    await client.from('todos').update({'finished': finished}).eq('id', id);
+  }
+
+  updateNotificationsStatus(id, notifications) async {
+    await client.from('todos').update({'notifications': notifications}).eq('id', id);
   }
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_todo_app/components/header.dart';
-import 'package:flutter_todo_app/main.dart';
 import 'package:flutter_todo_app/pages/login.dart';
 import 'package:flutter_todo_app/services/supabase.dart';
 import 'package:form_validator/form_validator.dart';

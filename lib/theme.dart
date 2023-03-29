@@ -13,7 +13,8 @@ class AppTheme {
       colorScheme: ColorScheme(
         primary: _CustomColors().butterflyBlue,
         secondary: _CustomColors().butterflyBlue,
-        surface: _CustomColors().milk,
+        inversePrimary: _CustomColors().winterOasis,
+        surface: _CustomColors().crystal,
         background: _CustomColors().milk,
         error: Colors.red,
         onPrimary: _CustomColors().eliteBlue,
@@ -42,8 +43,7 @@ class AppTheme {
         contentPadding: const EdgeInsets.all(0),
         hintStyle: TextStyle(color: _CustomColors().textGray, fontSize: 14),
         enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-                color: _CustomColors().butterflyBlue.withOpacity(0.1)),
+            borderSide: BorderSide(color: _CustomColors().butterflyBlue.withOpacity(0.1)),
             borderRadius: const BorderRadius.all(Radius.circular(12))),
         border: OutlineInputBorder(
           borderSide: BorderSide(
@@ -76,6 +76,12 @@ class AppTheme {
           fontWeight: FontWeight.w700,
           fontFamily: GoogleFonts.notoSans().fontFamily,
         ),
+        bodySmall: TextStyle(
+          fontSize: 10,
+          color: _CustomColors().winterOasis,
+          fontWeight: FontWeight.w600,
+          fontFamily: GoogleFonts.poppins().fontFamily,
+        ),
       ));
 }
 
@@ -87,4 +93,20 @@ class _CustomColors {
   final Color winterOasis = const Color.fromRGBO(241, 250, 238, 1);
   final Color milk = const Color.fromRGBO(250, 255, 243, 1);
   final Color blackTie = const Color.fromRGBO(71, 71, 71, 1);
+  final Color crystal = const Color.fromRGBO(168, 218, 220, 0.5);
+}
+
+class ToDoColors {
+  static List<Color> tileColors = [
+    const Color.fromRGBO(249, 65, 68, 1),
+    const Color.fromRGBO(243, 114, 44, 1),
+    const Color.fromRGBO(248, 150, 304, 1),
+    const Color.fromRGBO(249, 132, 74, 1),
+    const Color.fromRGBO(249, 199, 79, 1),
+    const Color.fromRGBO(144, 190, 109, 1),
+    const Color.fromRGBO(67, 170, 139, 1),
+    const Color.fromRGBO(77, 144, 142, 1),
+    const Color.fromRGBO(87, 117, 144, 1),
+    const Color.fromRGBO(39, 125, 161, 1),
+  ];
 }

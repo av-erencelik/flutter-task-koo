@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_todo_app/components/header.dart';
-import 'package:flutter_todo_app/main.dart';
+
 import 'package:flutter_todo_app/pages/register.dart';
 import 'package:flutter_todo_app/services/supabase.dart';
 import 'package:form_validator/form_validator.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -133,7 +132,7 @@ class _LoginPageState extends State<LoginPage> with Validators {
     );
   }
 
-  Container loginButton(BuildContext context, GlobalKey<FormState> _formKey) {
+  Container loginButton(BuildContext context, GlobalKey<FormState> formKey) {
     return Container(
         width: double.infinity,
         height: 50,
