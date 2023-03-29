@@ -3,6 +3,7 @@ import 'package:flutter_todo_app/pages/home.dart';
 import 'package:flutter_todo_app/pages/login.dart';
 import 'package:flutter_todo_app/pages/register.dart';
 import 'package:flutter_todo_app/pages/welcome.dart';
+import 'package:flutter_todo_app/services/supabase.dart';
 import 'package:flutter_todo_app/theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -21,8 +22,6 @@ void main() async {
   runApp(const MyApp());
 }
 
-final supabase = Supabase.instance.client;
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -38,7 +37,7 @@ class MyApp extends StatelessWidget {
       },
       theme: AppTheme().theme,
       home: isFirstTime != null
-          ? supabase.auth.currentUser != null
+          ? SupabaseManager().getCurrentUser() != null
               ? const Home()
               : const LoginPage()
           : const WelcomePage(),

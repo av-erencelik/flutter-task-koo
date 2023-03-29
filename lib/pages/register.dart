@@ -162,9 +162,12 @@ class _RegisterPageState extends State<RegisterPage> with Validators {
               if (_formKey.currentState!.validate()) {
                 _formKey.currentState!.save();
                 try {
-                  final AuthResponse res = await supabase.auth.signUp(email: email, password: password, data: {
-                    "username": username,
-                  });
+                  await _supabaseController.signUpUser(
+                    context,
+                    email: email,
+                    password: password,
+                    username: username,
+                  );
                 } on AuthException catch (e) {
                   if (e.message.contains("User already registered")) {
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(

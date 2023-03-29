@@ -56,4 +56,8 @@ class SupabaseManager {
     await client.auth.signOut();
     Navigator.pushReplacementNamed(context, "/login");
   }
+
+  getCurrentUser() {
+    return client.auth.currentUser;
+  }
 }
