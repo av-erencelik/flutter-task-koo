@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_todo_app/services/todo.dart';
-import 'package:intl/intl.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -68,7 +67,7 @@ class SupabaseManager {
     return client
         .from('todos')
         .stream(primaryKey: ['id'])
-        .gte('day', DateTime.now().toIso8601String())
+        .eq("user_id", client.auth.currentUser!.id)
         .order("day", ascending: true);
   }
 
@@ -88,6 +87,7 @@ class SupabaseManager {
     final res = await client
         .from('todos')
         .select()
+        .eq("user_id", client.auth.currentUser!.id)
         .eq('day', DateTime.now().toIso8601String())
         .eq('notifications', true)
         .order("time", ascending: true)
@@ -96,7 +96,11 @@ class SupabaseManager {
   }
 
   fetchNumberOfTodaysTasks() async {
-    final res = await client.from('todos').select().eq('day', DateTime.now().toIso8601String());
+    final res = await client
+        .from('todos')
+        .select()
+        .eq("user_id", client.auth.currentUser!.id)
+        .eq('day', DateTime.now().toIso8601String());
     return res.length;
   }
 

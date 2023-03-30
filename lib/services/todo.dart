@@ -28,7 +28,7 @@ class Todo {
     notifications = json['notifications'];
     finished = json['finished'];
     day = json['day'];
-    userId = json['userId'];
+    userId = json['user_id'];
     colorId = json['colorId'];
   }
 

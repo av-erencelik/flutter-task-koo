@@ -10,13 +10,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 bool? isFirstTime;
-void main() async {
+Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
   SharedPreferences prefs = await SharedPreferences.getInstance();
   await Supabase.initialize(
     url: dotenv.env['SUPABASE_URL']!,
-    anonKey: dotenv.env['ANON_KEY']!, // You can find this in your Supabase dashboard
+    anonKey: dotenv.env['SUPABASE_KEY']!, // You can find this in your Supabase dashboard
   );
 
   isFirstTime = prefs.getBool('isFirstTime');

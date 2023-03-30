@@ -196,7 +196,6 @@ class _HomeState extends State<Home> {
                       if (pickedTime != null) {
                         setState(() {
                           time = pickedTime;
-                          print(time.hour);
                           timeinput.text = pickedTime.format(context);
                         });
                       }
@@ -221,15 +220,14 @@ class _HomeState extends State<Home> {
                     height: 50,
                     child: ElevatedButton(
                       onPressed: () async {
-                        print(time);
                         if (_formKey.currentState!.validate()) {
                           final timestamp = DateTime(day.year, day.month, day.day, time.hour, time.minute);
-                          Random random = new Random();
+                          Random random = Random();
                           final todo = {
                             'title': title,
                             'day': timestamp.toIso8601String(),
                             'time': timestamp.toString(),
-                            'userId': _supabaseController.getCurrentUser()!.id,
+                            'user_id': _supabaseController.getCurrentUser()!.id,
                             'colorId': random.nextInt(10)
                           };
                           _supabaseController.insetNewTodo(todo);
@@ -613,7 +611,6 @@ class _CustomAppbarState extends State<CustomAppbar> {
   late int todaysTasks = 0;
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     widget._supabaseController.fetchNumberOfTodaysTasks().then((value) {
       setState(() {
