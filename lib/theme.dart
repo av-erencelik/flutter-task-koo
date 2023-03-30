@@ -52,6 +52,32 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
         ),
       ),
+      timePickerTheme: TimePickerThemeData(
+        backgroundColor: _CustomColors().milk,
+        dialHandColor: _CustomColors().butterflyBlue,
+        dialBackgroundColor: _CustomColors().crystal,
+        dayPeriodTextColor: _CustomColors().eliteBlue,
+        dayPeriodShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        hourMinuteTextColor: _CustomColors().eliteBlue,
+        hourMinuteShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        entryModeIconColor: _CustomColors().butterflyBlue,
+        helpTextStyle: TextStyle(
+          color: _CustomColors().butterflyBlue,
+          fontSize: 14,
+        ),
+        hourMinuteTextStyle: TextStyle(
+          color: _CustomColors().butterflyBlue,
+          fontSize: 14,
+        ),
+        dayPeriodTextStyle: TextStyle(
+          color: _CustomColors().eliteBlue,
+          fontSize: 14,
+        ),
+      ),
       textTheme: TextTheme(
         headlineLarge: TextStyle(
           fontSize: 33,

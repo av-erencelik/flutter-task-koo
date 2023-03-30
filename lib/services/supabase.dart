@@ -69,8 +69,7 @@ class SupabaseManager {
         .from('todos')
         .stream(primaryKey: ['id'])
         .gte('day', DateTime.now().toIso8601String())
-        .order("day", ascending: true)
-        .order("time", ascending: true);
+        .order("day", ascending: true);
   }
 
   updateFinishedStatus(id, finished) async {
@@ -99,5 +98,9 @@ class SupabaseManager {
   fetchNumberOfTodaysTasks() async {
     final res = await client.from('todos').select().eq('day', DateTime.now().toIso8601String());
     return res.length;
+  }
+
+  insetNewTodo(Map todo) async {
+    await client.from('todos').insert(todo);
   }
 }

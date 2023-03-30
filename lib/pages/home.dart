@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_todo_app/services/todo.dart';
 import 'package:flutter_todo_app/services/supabase.dart';
@@ -14,7 +16,11 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   var _todoStream;
   final _supabaseController = SupabaseManager();
-
+  TextEditingController dateinput = TextEditingController();
+  TextEditingController timeinput = TextEditingController();
+  String title = "";
+  DateTime day = DateTime.now();
+  TimeOfDay time = TimeOfDay.now();
   @override
   void initState() {
     super.initState();
@@ -25,8 +31,19 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (context) {
+                double mWidth = MediaQuery.of(context).size.width;
+                double mHeight = MediaQuery.of(context).size.height;
+                return showNewTodoForm(mHeight, mWidth, context);
+              });
+        },
         elevation: 2,
         child: const Icon(Icons.add, size: 50, color: Colors.white),
       ),
@@ -59,7 +76,7 @@ class _HomeState extends State<Home> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 17),
             child: SizedBox(
-              height: MediaQuery.of(context).size.height - 300,
+              height: MediaQuery.of(context).size.height - 325,
               child: StreamBuilder(
                   stream: _todoStream,
                   builder: (context, AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
@@ -73,6 +90,169 @@ class _HomeState extends State<Home> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Container showNewTodoForm(double mHeight, double mWidth, BuildContext context) {
+    final _formKey = GlobalKey<FormState>();
+    return Container(
+      height: mHeight * 0.8,
+      width: mWidth,
+      child: Container(
+        height: mHeight * 1,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(80),
+            topRight: Radius.circular(80),
+          ),
+        ),
+        child: Column(children: [
+          Transform.translate(
+            offset: const Offset(0, -25),
+            child: ElevatedButton(
+              onPressed: () {
+                timeinput.text = "";
+                dateinput.text = "";
+                Navigator.pop(context);
+              },
+              style: Theme.of(context).elevatedButtonTheme.style?.copyWith(
+                    backgroundColor: MaterialStateProperty.all(Colors.red),
+                    foregroundColor: MaterialStateProperty.all(Colors.white),
+                    elevation: const MaterialStatePropertyAll(0),
+                    shape: const MaterialStatePropertyAll(CircleBorder()),
+                  ),
+              child: const Icon(
+                Icons.close,
+                size: 50,
+              ),
+            ),
+          ),
+          Form(
+            key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            child: Padding(
+              padding: const EdgeInsets.all(25),
+              child: Column(
+                children: [
+                  TextFormField(
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      icon: Icon(Icons.title, color: Theme.of(context).colorScheme.primary),
+                      hintText: "Title",
+                      labelStyle: const TextStyle(color: Colors.black),
+                      border: const UnderlineInputBorder(),
+                      enabledBorder: const UnderlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter some text';
+                      } else {
+                        title = value;
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    readOnly: true,
+                    controller: dateinput,
+                    onTap: () async {
+                      DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 1000)),
+                      );
+                      setState(() {
+                        day = pickedDate!;
+                        dateinput.text = DateFormat('yyyy-MM-dd').format(pickedDate);
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: "Date",
+                      icon: Icon(Icons.calendar_month, color: Theme.of(context).colorScheme.primary),
+                      labelStyle: const TextStyle(color: Colors.black),
+                      border: const UnderlineInputBorder(),
+                      enabledBorder: const UnderlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter some text';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    readOnly: true,
+                    controller: timeinput,
+                    onTap: () async {
+                      TimeOfDay? pickedTime = await showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay.now(),
+                      );
+                      if (pickedTime != null) {
+                        setState(() {
+                          time = pickedTime;
+                          print(time.hour);
+                          timeinput.text = pickedTime.format(context);
+                        });
+                      }
+                    },
+                    decoration: InputDecoration(
+                      hintText: "Time",
+                      icon: Icon(Icons.timelapse, color: Theme.of(context).colorScheme.primary),
+                      labelStyle: const TextStyle(color: Colors.black),
+                      border: const UnderlineInputBorder(),
+                      enabledBorder: const UnderlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter some text';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  Container(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        print(time);
+                        if (_formKey.currentState!.validate()) {
+                          final timestamp = DateTime(day.year, day.month, day.day, time.hour, time.minute);
+                          Random random = new Random();
+                          final todo = {
+                            'title': title,
+                            'day': timestamp.toIso8601String(),
+                            'time': timestamp.toString(),
+                            'userId': _supabaseController.getCurrentUser()!.id,
+                            'colorId': random.nextInt(10)
+                          };
+                          _supabaseController.insetNewTodo(todo);
+                        }
+                        Navigator.pop(context);
+                        dateinput.text = "";
+                        timeinput.text = "";
+                        _formKey.currentState!.reset();
+                      },
+                      child: Text(
+                        'Add',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(fontWeight: FontWeight.w500, color: Colors.white, fontSize: 17),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+        ]),
       ),
     );
   }
@@ -143,21 +323,24 @@ class TodoList extends StatelessWidget {
       onDismissed: (direction) {
         _supabaseController.deleteTodoById(todo.id);
       },
-      background: Align(
-          alignment: Alignment.centerRight,
-          child: Container(
-            alignment: Alignment.center,
-            width: 35,
-            height: 35,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(50),
-              color: Colors.red[100],
-            ),
-            child: const Icon(
-              Icons.delete,
-              color: Colors.red,
-            ),
-          )),
+      background: Container(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        child: Align(
+            alignment: Alignment.centerRight,
+            child: Container(
+              alignment: Alignment.center,
+              width: 35,
+              height: 35,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(50),
+                color: Colors.red[100],
+              ),
+              child: const Icon(
+                Icons.delete,
+                color: Colors.red,
+              ),
+            )),
+      ),
       key: UniqueKey(),
       child: TodoTask(
         todo: todo,
@@ -332,7 +515,7 @@ class _TodayReminderState extends State<TodayReminder> {
   void initState() {
     super.initState();
     widget.supabaseController.fetchTodaysLatestNotificationsTrueTodo().then((value) {
-      if (value != false) {
+      if (value.length > 0) {
         setState(() {
           current = value[0];
           show = true;

@@ -7,15 +7,16 @@ import 'package:flutter_todo_app/services/supabase.dart';
 import 'package:flutter_todo_app/theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 bool? isFirstTime;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   SharedPreferences prefs = await SharedPreferences.getInstance();
   await Supabase.initialize(
-    url: 'https://pxppdldhgixwjyntwxsx.supabase.co',
-    anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4cHBkbGRoZ2l4d2p5bnR3eHN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2Nzk5MTYyODksImV4cCI6MTk5NTQ5MjI4OX0.gUk6ADmU3KoXNFESrg4wz3II4lOLo4DWWoC-q9Joo5g',
+    url: dotenv.env['SUPABASE_URL']!,
+    anonKey: dotenv.env['ANON_KEY']!, // You can find this in your Supabase dashboard
   );
 
   isFirstTime = prefs.getBool('isFirstTime');
